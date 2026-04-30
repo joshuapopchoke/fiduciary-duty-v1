@@ -1,0 +1,337 @@
+/* =========================================================
+   Desktop Shell Styles
+   Extends existing design tokens from renderer/styles.css.
+   Add this import to renderer/styles.css:
+     @import './desktop.css';
+   ========================================================= */
+
+/* ── Desktop Root ─────────────────────────────────────── */
+.ds-root {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  background:
+    radial-gradient(ellipse at 20% 80%, rgba(240, 180, 41, 0.08), transparent 50%),
+    linear-gradient(160deg, #050e18 0%, #071525 60%, #030a10 100%);
+  overflow: hidden;
+  font-family: "Segoe UI", sans-serif;
+}
+
+/* ── Desktop Surface ──────────────────────────────────── */
+.ds-surface {
+  position: relative;
+  flex: 1;
+  overflow: hidden;
+  /* Subtle grid pattern for desktop feel */
+  background-image:
+    linear-gradient(rgba(255,255,255,0.015) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,0.015) 1px, transparent 1px);
+  background-size: 48px 48px;
+}
+
+/* ── Desktop Icon Grid ────────────────────────────────── */
+.ds-icon-grid {
+  position: absolute;
+  top: 12px;
+  left: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  align-items: flex-start;
+}
+
+/* ── Desktop Icon ─────────────────────────────────────── */
+.di-root {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  width: 72px;
+  padding: 6px 4px;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 6px;
+  cursor: pointer;
+  color: var(--text);
+  transition: background 0.15s, border-color 0.15s;
+  user-select: none;
+}
+
+.di-root:hover {
+  background: rgba(240, 180, 41, 0.1);
+  border-color: rgba(240, 180, 41, 0.25);
+}
+
+.di-root:focus-visible {
+  outline: 2px solid var(--accent);
+  outline-offset: 2px;
+}
+
+.di-icon-wrap {
+  position: relative;
+  width: 40px;
+  height: 40px;
+}
+
+.di-img {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
+}
+
+.di-img--fallback {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--panel-2);
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--accent);
+}
+
+.di-badge {
+  position: absolute;
+  top: -4px;
+  right: -4px;
+  min-width: 18px;
+  height: 18px;
+  padding: 0 4px;
+  background: var(--red);
+  color: #fff;
+  font-size: 0.65rem;
+  font-weight: 700;
+  border-radius: 9px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+}
+
+.di-label {
+  font-size: 0.72rem;
+  text-align: center;
+  line-height: 1.2;
+  color: var(--text);
+  text-shadow: 0 1px 3px rgba(0,0,0,0.8);
+  word-break: break-word;
+  max-width: 68px;
+}
+
+/* ── Window Frame ─────────────────────────────────────── */
+.wf-shell {
+  display: flex;
+  flex-direction: column;
+  background: var(--panel);
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.6), 0 2px 8px rgba(0,0,0,0.4);
+  overflow: hidden;
+}
+
+.wf-shell.wf-maximized {
+  border-radius: 0;
+  border: none;
+}
+
+.wf-titlebar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  height: 32px;
+  min-height: 32px;
+  padding: 0 8px 0 10px;
+  background: var(--panel-2);
+  border-bottom: 1px solid var(--border);
+  cursor: move;
+  user-select: none;
+  flex-shrink: 0;
+}
+
+.wf-titlebar-left {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  overflow: hidden;
+}
+
+.wf-icon {
+  width: 16px;
+  height: 16px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.wf-title {
+  font-size: 0.78rem;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.wf-titlebar-controls {
+  display: flex;
+  gap: 2px;
+  flex-shrink: 0;
+}
+
+.wf-btn {
+  width: 28px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: transparent;
+  border: none;
+  border-radius: 4px;
+  color: var(--muted);
+  font-size: 0.75rem;
+  cursor: pointer;
+  transition: background 0.1s, color 0.1s;
+  padding: 0;
+}
+
+.wf-btn:hover {
+  background: rgba(255,255,255,0.08);
+  color: var(--text);
+}
+
+.wf-close:hover {
+  background: var(--red);
+  color: #fff;
+}
+
+.wf-body {
+  flex: 1;
+  overflow: auto;
+  min-height: 0;
+}
+
+/* ── Taskbar ──────────────────────────────────────────── */
+.tb-root {
+  position: relative;
+  z-index: 9999;
+  display: flex;
+  align-items: center;
+  height: 40px;
+  min-height: 40px;
+  background: rgba(6, 16, 26, 0.95);
+  border-top: 1px solid var(--border);
+  backdrop-filter: blur(12px);
+  padding: 0 4px;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.tb-start {
+  width: 40px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--accent);
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  flex-shrink: 0;
+  transition: background 0.15s;
+}
+
+.tb-start:hover {
+  background: #d49e20;
+}
+
+.tb-start-label {
+  font-size: 0.7rem;
+  font-weight: 800;
+  color: #07111f;
+  letter-spacing: 0.05em;
+}
+
+.tb-windows {
+  flex: 1;
+  display: flex;
+  gap: 2px;
+  overflow: hidden;
+  align-items: center;
+}
+
+.tb-window-btn {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  height: 30px;
+  max-width: 160px;
+  min-width: 80px;
+  padding: 0 8px;
+  background: rgba(255,255,255,0.05);
+  border: 1px solid transparent;
+  border-radius: 4px;
+  color: var(--muted);
+  font-size: 0.75rem;
+  cursor: pointer;
+  overflow: hidden;
+  transition: background 0.1s, border-color 0.1s, color 0.1s;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+.tb-window-btn:hover {
+  background: rgba(255,255,255,0.1);
+  color: var(--text);
+}
+
+.tb-window-btn--active {
+  background: rgba(240, 180, 41, 0.12);
+  border-color: rgba(240, 180, 41, 0.35);
+  color: var(--text);
+}
+
+.tb-window-btn--minimized {
+  opacity: 0.55;
+}
+
+.tb-win-icon {
+  width: 14px;
+  height: 14px;
+  object-fit: contain;
+  flex-shrink: 0;
+}
+
+.tb-win-label {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.tb-tray {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-shrink: 0;
+  padding: 0 6px;
+}
+
+.tb-clock {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  cursor: default;
+}
+
+.tb-time {
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1.2;
+}
+
+.tb-date {
+  font-size: 0.65rem;
+  color: var(--muted);
+  line-height: 1.2;
+}
