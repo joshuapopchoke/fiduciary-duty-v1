@@ -1,0 +1,31 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Fiduciary Duty</title>
+    <script>
+      (function () {
+        var STORAGE_KEY = "fd-resolution";
+        window.__applyResolution = function (label) {
+          if (!label || label === "Auto" || label === "Clear") {
+            localStorage.removeItem(STORAGE_KEY);
+          } else {
+            localStorage.setItem(STORAGE_KEY, label);
+          }
+        };
+      })();
+    </script>
+    <script type="module" src="./assets/index-Devzstn0.js"></script>
+    <link rel="modulepreload" href="./assets/vendor-BVOz9ByZ.js">
+    <link rel="modulepreload" href="./assets/study-engine-B4qyVJG4.js">
+    <link rel="modulepreload" href="./assets/advice-engines-9EdlLn1r.js">
+    <link rel="modulepreload" href="./assets/market-engine-ChahmMY7.js">
+    <link rel="modulepreload" href="./assets/shell-ui-CLmCrU9_.js">
+    <link rel="modulepreload" href="./assets/workstation-core-X0MUy1Y-.js">
+    <link rel="stylesheet" href="./assets/index-DEJo523C.css">
+  </head>
+  <body>
+    <div id="root"></div>
+  </body>
+</html>
