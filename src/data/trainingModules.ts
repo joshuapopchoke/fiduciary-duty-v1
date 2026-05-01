@@ -42,7 +42,7 @@ export const TRAINING_MODULES: TrainingModuleDefinition[] = [
     requiredDifficulty: "learner",
     minimumAccuracy: 70,
     completionScoreTarget: 76,
-    minimumAnsweredQuestions: 12,
+    minimumAnsweredQuestions: 75,
     completionLabel: "Reach a 76 readiness score with 70% accuracy across the assigned exam bank.",
     coachingSignals: ["Exam readiness", "Accuracy discipline", "Knowledge breadth"],
     endsWhenCompleted: true

@@ -2,16 +2,25 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 
 export default defineConfig({
-  plugins: [react()],
+  plugins: [
+    react(),
+    {
+      name: "remove-crossorigin",
+      transformIndexHtml(html) {
+        return html.replace(/ crossorigin/g, "");
+      }
+    }
+  ],
   base: "./",
   build: {
     outDir: "dist/renderer",
+    modulePreload: {
+      polyfill: false
+    },
     rollupOptions: {
       output: {
         manualChunks(id) {
           if (id.includes("node_modules")) {
-            if (id.includes("react")) return "vendor-react";
-            if (id.includes("zustand")) return "vendor-state";
             return "vendor";
           }
           if (id.includes("/src/data/authoredQuestions/")) return undefined;

@@ -115,7 +115,7 @@ export function IncomeTaxCalculatorPanel() {
   ];
 
   return (
-    <section className="panel">
+    <section className="panel" style={{ maxHeight: "calc(100vh - 96px)", overflowY: "auto", overflowX: "hidden" }}>
       <div className="panel-header">
         <h2>Income Tax Calculator</h2>
         <span className="panel-meta">{activeClient.name} | {baseCalc.filingStatus === "mfj" ? "Married Filing Jointly" : "Single"} | Federal + State 2024</span>

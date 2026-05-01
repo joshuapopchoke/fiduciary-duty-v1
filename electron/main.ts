@@ -1,8 +1,10 @@
-import { app, BrowserWindow, ipcMain, screen } from "electron";
+import { app, BrowserWindow, ipcMain, net, protocol, screen } from "electron";
+import fs from "node:fs";
 import http from "node:http";
 import os from "node:os";
 import path from "node:path";
 import { randomBytes } from "node:crypto";
+import { pathToFileURL } from "node:url";
 import { autoUpdater } from "electron-updater";
 import type {
   LanBridgeClientStatus,
@@ -19,6 +21,19 @@ const isTest = Boolean(process.env.PLAYWRIGHT_TEST);
 const DEFAULT_LAN_PORT = 38741;
 const LAN_CONFIG_FILE = "lan-bridge-config.json";
 const LAN_CLIENT_NAME = os.hostname();
+const APP_PROTOCOL = "fdapp";
+
+protocol.registerSchemesAsPrivileged([
+  {
+    scheme: APP_PROTOCOL,
+    privileges: {
+      standard: true,
+      secure: true,
+      supportFetchAPI: true,
+      stream: true
+    }
+  }
+]);
 
 let mainWindow: BrowserWindow | null = null;
 let lanServer: http.Server | null = null;
@@ -389,6 +404,44 @@ function configureAutoUpdates() {
   void autoUpdater.checkForUpdatesAndNotify();
 }
 
+function writeStartupLog(message: string, detail?: unknown) {
+  const line = `[${new Date().toISOString()}] ${message}${detail ? ` ${typeof detail === "string" ? detail : JSON.stringify(detail)}` : ""}\n`;
+  console.log(line.trim());
+
+  try {
+    const logsDir = path.join(app.getPath("userData"), "logs");
+    fs.mkdirSync(logsDir, { recursive: true });
+    fs.appendFileSync(path.join(logsDir, "startup.log"), line, "utf8");
+  } catch {
+    // Logging must never block app startup.
+  }
+}
+
+function rendererRootPath() {
+  return path.join(app.getAppPath(), "dist", "renderer");
+}
+
+function registerRendererProtocol() {
+  if (isDev) {
+    return;
+  }
+
+  protocol.handle(APP_PROTOCOL, (request) => {
+    const requestUrl = new URL(request.url);
+    const requestedPath = decodeURIComponent(requestUrl.pathname.replace(/^\/+/, "")) || "index.html";
+    const rendererRoot = rendererRootPath();
+    const resolvedPath = path.resolve(rendererRoot, requestedPath);
+    const normalizedRoot = path.resolve(rendererRoot).toLowerCase();
+
+    if (!resolvedPath.toLowerCase().startsWith(normalizedRoot)) {
+      writeStartupLog("Blocked renderer protocol path traversal", request.url);
+      return new Response("Not found", { status: 404 });
+    }
+
+    return net.fetch(pathToFileURL(resolvedPath).toString());
+  });
+}
+
 function getAutoWindowSize(display: Electron.Display) {
   const workArea = display.workAreaSize;
   return {
@@ -441,14 +494,47 @@ function createWindow() {
       nodeIntegration: false,
       nodeIntegrationInSubFrames: false,
       contextIsolation: true,
-      sandbox: isTest ? false : true,
-      webSecurity: true,
+      sandbox: false,
+      webSecurity: false,
       allowRunningInsecureContent: false,
       devTools: isDev || isTest
     }
   });
 
+  const showWindow = () => {
+    if (win.isDestroyed() || win.isVisible()) {
+      return;
+    }
+
+    if (workArea.width <= 1280 || workArea.height <= 720) {
+      win.maximize();
+    }
+    win.show();
+  };
+
+  if (!isDev) {
+    writeStartupLog("Packaged renderer startup", {
+      appPath: app.getAppPath(),
+      rendererRoot: rendererRootPath()
+    });
+  }
+
   win.webContents.setWindowOpenHandler(() => ({ action: "deny" }));
+  win.webContents.on("console-message", (_event, level, message, line, sourceId) => {
+    writeStartupLog("Renderer console", { level, message, line, sourceId });
+  });
+  win.webContents.on("did-fail-load", (_event, errorCode, errorDescription, validatedURL) => {
+    writeStartupLog("Renderer failed to load", { errorCode, errorDescription, validatedURL });
+    showWindow();
+  });
+  win.webContents.on("render-process-gone", (_event, details) => {
+    writeStartupLog("Renderer process gone", details);
+    showWindow();
+  });
+  win.webContents.on("preload-error", (_event, preloadPath, error) => {
+    writeStartupLog("Preload failed", { preloadPath, message: error.message, stack: error.stack });
+    showWindow();
+  });
   win.webContents.on("will-navigate", (event) => {
     event.preventDefault();
   });
@@ -467,21 +553,23 @@ function createWindow() {
 
   if (!isTest) {
     win.once("ready-to-show", () => {
-      if (workArea.width <= 1280 || workArea.height <= 720) {
-        win.maximize();
-      }
-      win.show();
+      showWindow();
     });
+    setTimeout(showWindow, 3000);
   }
 
   if (isDev) {
     void win.loadURL(process.env.VITE_DEV_SERVER_URL!);
   } else {
-    void win.loadFile(path.join(__dirname, "../renderer/index.html"));
+    void win.loadURL(`${APP_PROTOCOL}://renderer/index.html`).catch((error) => {
+      writeStartupLog("Renderer loadURL failed", { message: error.message, stack: error.stack });
+      showWindow();
+    });
   }
 }
 
 app.whenReady().then(() => {
+  registerRendererProtocol();
   createWindow();
   configureAutoUpdates();
   void restoreLanBridge();
@@ -530,14 +618,13 @@ ipcMain.handle("set-resolution", (event, width: number | null, height: number | 
 // ─── Report Export ────────────────────────────────────────────────────────────
 ipcMain.handle("export:trainee-report", async (_event, payload: { html: string; filename: string }) => {
   try {
-    const fs = await import("node:fs/promises");
+    const fsPromises = await import("node:fs/promises");
     const { shell } = await import("electron");
     const reportsDir = path.join(app.getPath("userData"), "reports");
-    await fs.mkdir(reportsDir, { recursive: true });
+    await fsPromises.mkdir(reportsDir, { recursive: true });
 
-    // Write HTML to a temp file, load it in a hidden window, print to PDF
     const tmpHtml = path.join(reportsDir, `_tmp_${Date.now()}.html`);
-    await fs.writeFile(tmpHtml, payload.html, "utf8");
+    await fsPromises.writeFile(tmpHtml, payload.html, "utf8");
 
     const win = new BrowserWindow({
       show: false,
@@ -551,10 +638,10 @@ ipcMain.handle("export:trainee-report", async (_event, payload: { html: string; 
       margins: { top: 0.4, bottom: 0.4, left: 0.4, right: 0.4 }
     });
     win.destroy();
-    await fs.unlink(tmpHtml).catch(() => undefined);
+    await fsPromises.unlink(tmpHtml).catch(() => undefined);
 
     const pdfPath = path.join(reportsDir, payload.filename);
-    await fs.writeFile(pdfPath, pdfBuffer);
+    await fsPromises.writeFile(pdfPath, pdfBuffer);
     shell.showItemInFolder(pdfPath);
     return { ok: true, path: pdfPath };
   } catch (error) {
@@ -564,10 +651,10 @@ ipcMain.handle("export:trainee-report", async (_event, payload: { html: string; 
 
 ipcMain.handle("export:open-reports-folder", async () => {
   try {
-    const fs = await import("node:fs/promises");
+    const fsPromises = await import("node:fs/promises");
     const { shell } = await import("electron");
     const reportsDir = path.join(app.getPath("userData"), "reports");
-    await fs.mkdir(reportsDir, { recursive: true });
+    await fsPromises.mkdir(reportsDir, { recursive: true });
     await shell.openPath(reportsDir);
     return { ok: true };
   } catch (error) {
