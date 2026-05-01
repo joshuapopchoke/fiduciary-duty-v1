@@ -23,8 +23,8 @@ Fiduciary Duty is an Electron desktop training application for practicing client
 5. Run `npm run dist:publish` only when a real update feed and release process are ready
 
 ## Running Locally via Installation
-1. Download from Fiduciary Duty Setup 1.0.0.exe from Release Folder
-2. Install via Fiduciary Duty Setup 1.0.0.exe
+1. Download from Fiduciary Duty Setup 1.0.0.exe from Release Folder <you must click View Raw for download to proceed>
+2. Install via Fiduciary Duty Setup 1.0.0.exe. You will need to Click More Info > Run Anyway and then relaunch the launcher if it doesnt load immediately>
 3. Make sure to change the install location to the appropriate drive of your choosing not AppData
 4. Upon first login, user must access Manager Workstation to add "employees" and assign modules
 5. Username: admin. Password: Admin01. You will also need an authenticator to get into the Manager Workstation
