@@ -14,13 +14,20 @@ Fiduciary Duty is an Electron desktop training application for practicing client
 - `src/store` — Zustand game store, single source of truth for application state
 - `src/types` — Shared TypeScript interfaces
 
-## Running Locally
+## Running Locally via Command Prompt
 
 1. Install dependencies with `npm install`
 2. Start the Vite + Electron dev workflow with `npm run dev`
 3. Run `npm run test` for TypeScript verification
 4. Run `npm run dist` to build desktop installers locally without publishing updates
 5. Run `npm run dist:publish` only when a real update feed and release process are ready
+
+## Running Locally via Installation
+1. Download from Fiduciary Duty Setup 1.0.0.exe from Release Folder
+2. Install via Fiduciary Duty Setup 1.0.0.exe
+3. Make sure to change the install location to the appropriate drive of your choosing not AppData
+4. Upon first login, user must access Manager Workstation to add "employees" and assign modules
+5. Username: admin. Password: Admin01. You will also need an authenticator to get into the Manager Workstation
 
 ## LAN Setup
 
